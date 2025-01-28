@@ -169,3 +169,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# Ignore Parquet data files with
+*.parquet
+test/
