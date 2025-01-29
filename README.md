@@ -8,50 +8,48 @@ To run these notebooks, ensure you have the necessary dependencies installed and
 
 ### Prerequisites
 
-1. **Python Environment**:
-   - Install Python 3.7 or later.
-   - Set up a virtual environment (recommended).
-     ```bash
-     python -m venv .venv
-     source .venv/bin/activate  # macOS/Linux
-     .venv\Scripts\activate     # Windows
-     ```
+1. **Install Docker**
 
-2. **Install PySpark**:
-   - Install PySpark using pip:
-     ```bash
-     pip install pyspark
-     ```
+2. **Download required data**:
+   Run the next command to get the data needed for this exercise. If you don't have `wget` installed, follow the instructions below.
+   ```bash
+   wget https://d37ci6vzurychx.cloudfront.net/trip-data/fhvhv_tripdata_2023-01.parquet -P spark_data/
+   ```
 
-3. **Install Jupyter Notebook**:
-   - Install Jupyter:
-     ```bash
-     pip install notebook
-     ```
+   ### **Install `wget` if needed**
+   **macOS**<br>
+   You can install `wget` using Homebrew:
+   ```bash
+   brew install wget
+   ```
 
-4. **Install Java**:
-   - PySpark requires Java. Ensure Java is installed and JAVA_HOME is correctly set.
-   - On macOS, you can install Java using Homebrew:
-     ```bash
-     brew install openjdk@17
-     ```
-     Then, configure your environment:
-     ```bash
-     export JAVA_HOME=$(/usr/libexec/java_home)
-     export PATH=$JAVA_HOME/bin:$PATH
-     ```
+   **Linux**<br>
+   On Debian-based distributions (like Ubuntu), install `wget` using:
+   ```bash
+   sudo apt-get update
+   sudo apt-get install wget
+   ```
+   **Red Hat-based systems (like Fedora)**<br>
+   ```bash
+   sudo dnf install wget
+   ```
 
-5. **Verify Setup**:
-   - Check that PySpark works by starting a Python shell and creating a Spark session:
-     ```python
-     from pyspark.sql import SparkSession
-     spark = SparkSession.builder.appName("Test").getOrCreate()
-     print(spark.version)
-     ```
+   **Windows**<br>
+   On Windows, install `wget` as part of Git Bash or through a third-party package manager like Chocolatey:
+   ```bash
+   choco install wget
+   ```
 
 ### Running the Notebooks
 
-1. Start the Jupyter Notebook server:
+1. Build the Docker container:
    ```bash
-   jupyter notebook
+   docker-compose build --no-cache
     ```
+2. Run the Docker container:
+   ```bash
+   docker-compose up -d
+    ```
+3. Open the following links to ensure everything is working properly<br>
+[Jupyter Notebook](http://localhost:8888)<br>
+[Spark Cluster UI](http://localhost:8080)
