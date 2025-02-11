@@ -1,6 +1,28 @@
-version: '3'
-
 services:
+  # Zookeeper service for Kafka
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+
+  # Apache Kafka service to be the message broker
+  kafka:
+    image: bitnami/kafka:3.5
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=INTERNAL://:9093,EXTERNAL://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9093,EXTERNAL://localhost:9092
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+    ports:
+      - "9092:9092"  # External access through localhost
+      - "9093:9093"  # Internal access for Docker services
+    depends_on:
+      - zookeeper
+  
   spark-master:
     image: bitnami/spark:3.4.1
     environment:
@@ -78,6 +100,7 @@ services:
       - SPARK_MASTER=spark://spark-master:7077
     depends_on:
       - spark-master
+      - kafka
 
 volumes:
   spark-data:
