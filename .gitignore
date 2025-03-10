@@ -174,3 +174,5 @@ cython_debug/
 # Ignore Parquet data files with
 *.parquet
 test/
+
+*.json
