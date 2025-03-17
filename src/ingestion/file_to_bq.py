@@ -1,5 +1,9 @@
-from pyspark.sql import SparkSession
 import argparse
+import logging
+from pyspark.sql import SparkSession
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def main():
     # Argument parser to get file location and BigQuery details
@@ -12,35 +16,41 @@ def main():
 
     args = parser.parse_args()
 
+    input_path = args.input_path
+    bq_project = args.bq_project
+    bq_dataset = args.bq_dataset
+    bq_table = args.bq_table
+    gcp_keyfile = args.gcp_keyfile
+
+    logger.info(f'Start extracting data for table {bq_table}')
+
     # Initialize Spark session with BigQuery support
     spark = SparkSession.builder \
-        .appName("FileToBigQuery") \
-        .config("spark.jars", "gs://spark-lib/bigquery/spark-bigquery-latest.jar") \
-        .config("temporaryGcsBucket", "your-temp-bucket") \
+        .appName("CSV to BigQuery") \
+        .master("local[*]") \
+        .config("spark.jars.packages", "com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.28.0") \
+        .config("spark.hadoop.google.cloud.auth.service.account.enable", "true") \
+        .config("spark.hadoop.google.cloud.auth.service.account.json.keyfile", gcp_keyfile) \
         .getOrCreate()
+    logger.info('Spark Session built with sucess')
+    
+    df = spark.read.csv(input_path, header=True, inferSchema=True)
+    logger.info(f"All files from {input_path} loaded into DF.")
 
-    # Set GCP credentials
-    spark.conf.set("google.cloud.auth.service.account.json.keyfile", args.gcp_keyfile)
-
-    # Read the file (Auto-detect format based on extension)
-    if args.input_path.endswith(".csv"):
-        df = spark.read.option("header", "true").csv(args.input_path)
-    elif args.input_path.endswith(".json"):
-        df = spark.read.json(args.input_path)
-    elif args.input_path.endswith(".parquet"):
-        df = spark.read.parquet(args.input_path)
-    else:
-        raise ValueError("Unsupported file format. Use CSV, JSON, or Parquet.")
-
+    logger.info("Start saving data in BQ...")
     # Write to BigQuery
     df.write \
         .format("bigquery") \
-        .option("table", f"{args.bq_project}.{args.bq_dataset}.{args.bq_table}") \
-        .option("temporaryGcsBucket", "your-temp-bucket") \
+        .option("table", f"{bq_project}.{bq_dataset}.{bq_table}") \
+        .option("writeMethod", "direct") \
+        .option("createDisposition", "CREATE_IF_NEEDED") \
+        .option("datasetLocation", "europe-west4") \
         .mode("append") \
         .save()
 
-    print(f"Data successfully written to {args.bq_project}.{args.bq_dataset}.{args.bq_table}")
+    logger.info(f"Data successfully written to {bq_project}.{bq_dataset}.{bq_table}")
+
+    spark.stop()
 
 if __name__ == "__main__":
     main()

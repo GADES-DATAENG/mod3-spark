@@ -1,12 +1,17 @@
 # Get the Spark Master IP address from Docker Container
-docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' spark-master
+#docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' spark-master-1
 
 # The Spark Master URL should be like
 # spark://<container-ip>:7077
 
 # The spark-submit command will be like this
 spark-submit \
-  --master spark://172.17.0.2:7077 \
+  --packages com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.28.0 \
+  --master spark://spark-master:7077 \
   --deploy-mode client \
-  --jars gs://spark-lib/bigquery/spark-3.2-bigquery-0.27.1.jar \
-  my_script.py gs://my-bucket/my-file.csv
+  file_to_bq.py \
+  --input_path ../../spark_data/jaffle_data/ \
+  --bq_project lively-hall-447909-i7 \
+  --bq_dataset staging \
+  --bq_table customers \
+  --gcp_keyfile ../../notebooks/keys/gcp_keyfile.json
