@@ -1,0 +1,77 @@
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file:
+    - airflow.env
+  volumes:
+    - ./jobs:/opt/airflow/jobs
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./data:/opt/airflow/data
+  depends_on:
+    - postgres
+  networks:
+    - code-with-yu
+
+services:
+  spark-master:
+    image: bitnami/spark:latest
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "7077:7077"
+      - "8090:8080"
+    volumes:
+      - ./spark:/opt/spark-apps
+      - ./keys:/opt/keys
+      - ./data:/opt/data
+    networks:
+      - code-with-yu
+
+  spark-worker:
+    image: bitnami/spark:latest
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    depends_on:
+      - spark-master
+    volumes:
+      - ./spark:/opt/spark-apps
+      - ./keys:/opt/keys
+      - ./data:/opt/data
+    networks:
+      - code-with-yu
+
+  postgres:
+    image: postgres:14.0
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    networks:
+      - code-with-yu
+
+  webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      - scheduler
+    volumes:
+      - ./data:/opt/airflow/data
+      - ./dags:/opt/airflow/dags
+
+  scheduler:
+    <<: *airflow-common
+    command: bash -c "airflow db migrate && airflow users create --username admin --firstname Yusuf --lastname Ganiyu --role Admin --email airscholar@gmail.com --password admin && airflow scheduler"
+    volumes:
+      - ./data:/opt/airflow/data
+      - ./dags:/opt/airflow/dags
+      - ./keys:/opt/airflow/keys
+
+networks:
+  code-with-yu:
