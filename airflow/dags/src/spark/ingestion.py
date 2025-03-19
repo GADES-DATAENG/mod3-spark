@@ -29,7 +29,7 @@ def main():
 
     # Initialize Spark session with BigQuery support
     spark = SparkSession.builder \
-        .appName("CSV to BigQuery") \
+        .appName(f"staging_{bq_table}_to_bigquery") \
         .master("spark://spark-master:7077") \
         .config("spark.jars.packages", "com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.28.0") \
         .config("spark.hadoop.google.cloud.auth.service.account.enable", "true") \
