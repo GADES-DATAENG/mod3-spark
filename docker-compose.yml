@@ -6,6 +6,8 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
     ports:
       - "2181:2181"
+    networks:
+      - spark-net
 
   # Apache Kafka service to be the message broker
   kafka:
@@ -22,6 +24,8 @@ services:
       - "9093:9093"  # Internal access for Docker services
     depends_on:
       - zookeeper
+    networks:
+      - spark-net
   
   spark-master:
     image: bitnami/spark:3.4.1
@@ -36,6 +40,8 @@ services:
       - "7077:7077"  # Spark master port
     volumes:
       - ./spark_data:/opt/spark/data
+    networks:
+      - spark-net
 
   spark-worker-1:
     image: bitnami/spark:3.4.1
@@ -52,6 +58,8 @@ services:
       - ./spark_data:/opt/spark/data
     depends_on:
       - spark-master
+    networks:
+      - spark-net
 
   spark-worker-2:
     image: bitnami/spark:3.4.1
@@ -68,6 +76,8 @@ services:
       - ./spark_data:/opt/spark/data
     depends_on:
       - spark-master
+    networks:
+      - spark-net
 
   spark-worker-3:
     image: bitnami/spark:3.4.1
@@ -84,6 +94,8 @@ services:
       - ./spark_data:/opt/spark/data
     depends_on:
       - spark-master
+    networks:
+      - spark-net
 
   jupyter:
     build:
@@ -101,6 +113,12 @@ services:
     depends_on:
       - spark-master
       - kafka
+    networks:
+      - spark-net
 
 volumes:
   spark_data:
+
+networks:
+  spark-net:
+    driver: bridge
