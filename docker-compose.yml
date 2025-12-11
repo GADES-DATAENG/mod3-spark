@@ -1,7 +1,7 @@
 services:
   # Zookeeper service for Kafka
   zookeeper:
-    image: bitnami/zookeeper:3.8
+    image: bitnamilegacy/zookeeper:3.8
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
     ports:
@@ -11,7 +11,7 @@ services:
 
   # Apache Kafka service to be the message broker
   kafka:
-    image: bitnami/kafka:3.5
+    image: bitnamilegacy/kafka:3.5
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -28,7 +28,7 @@ services:
       - spark-net
   
   spark-master:
-    image: bitnami/spark:3.4.1
+    image: bitnamilegacy/spark:3.4.1
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
@@ -44,7 +44,7 @@ services:
       - spark-net
 
   spark-worker-1:
-    image: bitnami/spark:3.4.1
+    image: bitnamilegacy/spark:3.4.1
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
@@ -62,7 +62,7 @@ services:
       - spark-net
 
   spark-worker-2:
-    image: bitnami/spark:3.4.1
+    image: bitnamilegacy/spark:3.4.1
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
@@ -80,7 +80,7 @@ services:
       - spark-net
 
   spark-worker-3:
-    image: bitnami/spark:3.4.1
+    image: bitnamilegacy/spark:3.4.1
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077

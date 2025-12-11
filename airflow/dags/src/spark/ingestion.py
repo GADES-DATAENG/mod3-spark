@@ -42,32 +42,40 @@ def main():
     logger.info('Spark Session built with success')
 
     try:
-        logger.info("Downloading content and distributing via Spark...")
-        # Download the CSV content
-        response = requests.get(input_url)
-        
-        if response.status_code != 200:
-            raise Exception(f"Failed to download CSV. Status code: {response.status_code}")
-        
-        # Get the CSV content
-        csv_content = response.text
-        csv_reader = csv.reader(StringIO(csv_content))
-        
-        # Convert the rows to a list of lists (data)
-        data_rows = list(csv_reader)
-        # Extract header (first row)
-        columns = data_rows[0]
+        # Check if input is a URL or local file path
+        if input_url.startswith(('http://', 'https://')):
+            logger.info("Downloading content from URL and distributing via Spark...")
+            # Download the CSV content
+            response = requests.get(input_url)
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to download CSV. Status code: {response.status_code}")
+            
+            # Get the CSV content
+            csv_content = response.text
+            csv_reader = csv.reader(StringIO(csv_content))
+            
+            # Convert the rows to a list of lists (data)
+            data_rows = list(csv_reader)
+            # Extract header (first row)
+            columns = data_rows[0]
 
-        # Create an RDD from the data rows (excluding header)
-        rdd = spark.sparkContext.parallelize(data_rows[1:])
+            # Create an RDD from the data rows (excluding header)
+            rdd = spark.sparkContext.parallelize(data_rows[1:])
 
-        # Create DataFrame with the column names
-        df = rdd.toDF(columns)
+            # Create DataFrame with the column names
+            df = rdd.toDF(columns)
+        else:
+            logger.info(f"Reading local CSV file: {input_url}")
+            # Read local CSV file directly with Spark
+            df = spark.read.csv(input_url, header=True, inferSchema=True)
+        
+        df.count()
+        logger.info(f"Successfully loaded {df.count()} rows")
         
     except Exception as e:
-        logger.error(e)
-
-    df.count()
+        logger.error(f"Error loading data: {e}")
+        raise
 
     logger.info("Start saving data in BQ...")
     # Write to BigQuery

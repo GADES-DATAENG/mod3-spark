@@ -29,8 +29,8 @@ with DAG(
         name=f'ingest_{INGESTION_ENTITY}_data',
         verbose=True,
         application_args=[
-            "--input_url", f"{Variable.get("JAFFLE_DATA_BASE_URL")}_{INGESTION_ENTITY}.csv",
-            "--bq_project", "lively-hall-447909-i7",
+            "--input_url", f"{Variable.get('JAFFLE_DATA_BASE_URL')}/{INGESTION_ENTITY}.csv",
+            "--bq_project", "lithe-vent-480121-t5",
             "--bq_dataset", "staging",
             "--bq_table", INGESTION_ENTITY,
             "--gcp_keyfile", Variable.get("GCP_KEYFILE_PATH")

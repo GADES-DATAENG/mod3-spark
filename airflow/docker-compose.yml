@@ -9,6 +9,8 @@ x-airflow-common: &airflow-common
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./data:/opt/airflow/data
+    - ./data:/opt/data
+    - ./keys:/opt/keys
   depends_on:
     - postgres
   networks:
@@ -16,7 +18,7 @@ x-airflow-common: &airflow-common
 
 services:
   spark-master:
-    image: bitnami/spark:latest
+    image: bitnamilegacy/spark:latest
     container_name: spark-master
     environment:
       - SPARK_MODE=master
@@ -31,7 +33,7 @@ services:
       - code-with-yu
 
   spark-worker:
-    image: bitnami/spark:latest
+    image: bitnamilegacy/spark:latest
     container_name: spark-worker
     environment:
       - SPARK_MODE=worker
@@ -51,6 +53,11 @@ services:
       - POSTGRES_USER=airflow
       - POSTGRES_PASSWORD=airflow
       - POSTGRES_DB=airflow
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - code-with-yu
 
@@ -60,18 +67,28 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - scheduler
+      postgres:
+        condition: service_healthy
+      scheduler:
+        condition: service_started
     volumes:
       - ./data:/opt/airflow/data
       - ./dags:/opt/airflow/dags
+      - ./data:/opt/data
+      - ./keys:/opt/keys
 
   scheduler:
     <<: *airflow-common
-    command: bash -c "airflow db migrate && airflow users create --username admin --firstname Yusuf --lastname Ganiyu --role Admin --email airscholar@gmail.com --password admin && airflow scheduler"
+    command: bash -c "airflow db init && airflow users create --username admin --firstname Yusuf --lastname Ganiyu --role Admin --email airscholar@gmail.com --password admin || true && airflow scheduler"
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./data:/opt/airflow/data
       - ./dags:/opt/airflow/dags
       - ./keys:/opt/airflow/keys
+      - ./data:/opt/data
+      - ./keys:/opt/keys
 
 networks:
   code-with-yu:

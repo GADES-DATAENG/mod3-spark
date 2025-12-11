@@ -36,7 +36,7 @@ topic = "test-topic"
 print(f"Producing messages to Kafka topic '{topic}'...")
 
 try:
-    for i in range(10):  # Generate 10 random messages
+    for i in range(1000):  # Generate 10 random messages
         message_content = generate_random_sentence()
         message = {
             "message_id": i,
